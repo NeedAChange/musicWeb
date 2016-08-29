@@ -1,7 +1,7 @@
 function $(s) {
     return document.querySelectorAll(s);
 }
-var size = 128;
+var size = 64;
 
 
 var container = $('#container')[0];
@@ -40,10 +40,11 @@ function getDots() {
     for (var i = 0; i < size; i++) {
         var x = random(0, width);
         var y = random(0, height);
-        var color = "rgb(" + random(0, 255) + "," + random(0, 255) + "," + random(0, 255) + ")";
+        var color = "rgba(" + random(0, 255) + "," + random(0, 255) + "," + random(0, 255) + ",0";
         Dots.push({
             x: x,
             y: y,
+            dx: random(1, 4),
             color: color,
             cap: 0
         });
@@ -69,35 +70,33 @@ window.onresize = resize;
 function draw(arr) {
     ctx.clearRect(0, 0, width, height);
     var w = width / size;
-    var capH = cw;
     var cw = w * 0.6;
+    var capH = cw > 10 ? 10 : cw;
     ctx.fillStyle = line;
     for (var i = 0; i < size; i++) {
-     var o = Dots[i];
-     if (draw.type == 'column') {
-         var h = arr[i] / 256 * height;
-         ctx.fillRect(w * i, height - h, cw, h);
-         ctx.fillRect(w * i, height - (o.cap + capH), cw, capH);
-         o.cap--;
-         if (o.cap < 0) { o.cap = 0 }
-         if (h > 0 && o.cap < h + 40) { o.cap = h + 40 }
-     } else if (draw.type == "dot") {
-         ctx.beginPath();
-         var r = arr[i] / 256 * 50;
-         ctx.arc(o.x, o.y, r, 0, Math.PI * 2, true);
+        var o = Dots[i];
+        if (draw.type == 'column') {
+            var h = arr[i] / 256 * height - 50;
+            ctx.fillRect(w * i, height - h, cw, h);
+            ctx.fillRect(w * i, height - (o.cap + capH), cw, capH);
+            o.cap--;
+            if (o.cap < 0) { o.cap = 0 }
+            if (h > 0 && o.cap < h + 40) { o.cap = h + 40 > height - capH ? height - capH : h + 40 }
+        } else if (draw.type == "dot") {
+            ctx.beginPath();
+            var r = 10 + arr[i] / 256 * (height > width ? width : height) / 10;
+            ctx.arc(o.x, o.y, r, 0, Math.PI * 2, true);
             var g = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, r);
             g.addColorStop(0, "#fff");
             g.addColorStop(1, o.color);
             ctx.fillStyle = g;
             ctx.fill();
+            o.x += o.dx;
+            o.x = o.x > width ? 0 : o.x;
         }
     }
 }
 draw.type = "column";
-
-
-
-
 
 $("#volume")[0].onchange = function() {
     mv.changeVolume(this.value / this.max);
